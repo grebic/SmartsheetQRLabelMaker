@@ -152,14 +152,14 @@ foreach ($ptCO in $ptCOs)
             $sh.Cells.Item(4, 1)  = if ($ptCO.Assign -ne $null){$ptCO.Assign} else {[string]::Empty}
             $sh.Cells.Item(5, 1)  = if ($($ptCO.Received) -ne $null){$($ptCO.Received)} else {[string]::Empty}
             
-            (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘Zebra ZP 500 (ZPL) (Copy 1)’)
+            (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘Zebra ZP 500 (ZPL) (Copy 1)’) ###########THIS IS WHERE YOUR LABEL PRINTER NAME GOES
             
             $sh.PrintOut(1,1,1)
             
             $wb.Close($false)
             $xl.Quit()
 
-            (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘HP LaserJet Pro M402-M403 PCL 6’)
+            (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘HP LaserJet Pro M402-M403 PCL 6’) ##########THIS IS YOUR DEFAULT PRINTER NAME
 
             $SkuCell = [Smartsheet.Api.Models.Cell]::new()
             $SkuCell.ColumnId = $SkuNumCol.Id
