@@ -1,4 +1,4 @@
-﻿cd "P:\ANG_System_Files"
+cd "P:\ANG_System_Files"
 
 function Load-Dll
 {
@@ -55,7 +55,7 @@ Load-Dll ".\RestSharp.dll"
 Load-Dll ".\Newtonsoft.Json.dll"
 Load-Dll ".\NLog.dll"
 
-$token = ""
+$token = "9xpfoqpyxblhui52jqga2o1mvd"
 $smartsheet = [Smartsheet.Api.SmartSheetBuilder]::new()
 $builder = $smartsheet.SetAccessToken($token)
 $client = $builder.Build()
@@ -77,47 +77,116 @@ foreach ($ptCO in $ptCOs)
 {
     if(![string]::IsNullOrWhiteSpace($ptCO.Print))
     {
-        $count = $($ptCO.Print) + 1
-        
-        for ($i = 1; $i -le ($ptCO.Print); $i++)
+        if ($($ptCO.Print) -gt 1)
         {
-            $newCount = $count -1
+            $count = $($ptCO.Print) + 1
+            
+            for ($i = 1; $i -le ($ptCO.Print); $i++)
+            {
+                $newCount = $count -1
 
-            $subPOvalue = "$($ptCO.Po) Piece #$newCount"
-            
-            $poCell = [Smartsheet.Api.Models.Cell]::new()
-            $poCell.ColumnId     = $poLabelCol.Id
-            $poCell.Value        = $subPOvalue
-            
-            $jobsCell = [Smartsheet.Api.Models.Cell]::new()
-            $jobsCell.ColumnId   = $jobsLabelCol.Id
-            $JobsCell.Value      =  $($ptCO.Jobs)
-            
-            $descCell = [Smartsheet.Api.Models.Cell]::new()
-            $descCell.ColumnId   = $descLabelCol.Id
-            $descCell.Value      =  $($ptCO.Desc)
-            
-            $AssignCell = [Smartsheet.Api.Models.Cell]::new()
-            $AssignCell.ColumnId = $assignLabelCol.Id
-            $AssignCell.Value    =  $($ptCO.Assign)
-            
-            $row = [Smartsheet.Api.Models.Row]::new()
-            $row.ToBottom = $true
-            $row.parentId = $($ptCO.RowId)
-            $row.Cells = [Smartsheet.Api.Models.Cell[]]@($poCell,$jobsCell,$descCell,$AssignCell) 
-            
-            $newRow = $client.SheetResources.RowResources.AddRows($ptId, [Smartsheet.Api.Models.Row[]]@($row))
+                $subPOvalue = "$($ptCO.Po) Piece #$newCount"
+                
+                $poCell = [Smartsheet.Api.Models.Cell]::new()
+                $poCell.ColumnId     = $poLabelCol.Id
+                $poCell.Value        = $subPOvalue
+                
+                $jobsCell = [Smartsheet.Api.Models.Cell]::new()
+                $jobsCell.ColumnId   = $jobsLabelCol.Id
+                $JobsCell.Value      =  $($ptCO.Jobs)
+                
+                $descCell = [Smartsheet.Api.Models.Cell]::new()
+                $descCell.ColumnId   = $descLabelCol.Id
+                $descCell.Value      =  $($ptCO.Desc)
+                
+                $AssignCell = [Smartsheet.Api.Models.Cell]::new()
+                $AssignCell.ColumnId = $assignLabelCol.Id
+                $AssignCell.Value    =  $($ptCO.Assign)
+                
+                $row = [Smartsheet.Api.Models.Row]::new()
+                $row.ToBottom = $true
+                $row.parentId = $($ptCO.RowId)
+                $row.Cells = [Smartsheet.Api.Models.Cell[]]@($poCell,$jobsCell,$descCell,$AssignCell) 
+                
+                $newRow = $client.SheetResources.RowResources.AddRows($ptId, [Smartsheet.Api.Models.Row[]]@($row))
 
-            $barcodePath = "P:\ANG_System_Files\commonFormsUsedInScripts\Todds Labels\$subPOvalue.png"
+                $barcodePath = "P:\ANG_System_Files\commonFormsUsedInScripts\Todds Labels\$subPOvalue.png"
 
-            New-QRCodeVCard -FirstName $subPOvalue -LastName $($ptCO.Desc) -Email $($ptCO.Assign) -OutPath $barcodePath -Company "All New Glass"
+                New-QRCodeVCard -FirstName $subPOvalue -LastName $($ptCO.Desc) -Email $($ptCO.Assign) -OutPath $barcodePath -Company "All New Glass"
+
+                $xl = New-Object -ComObject Excel.Application -Property @{
+                 Visible = $false
+                 DisplayAlerts = $false
+                }
+                
+                $wb = $xl.WorkBooks.Add()
+                
+                $sh = $wb.Sheets.Item('Sheet1')
+
+                # Excel Constants
+                # MsoTriState
+                Set-Variable msoFalse 0 -Option Constant -ErrorAction SilentlyContinue
+                Set-Variable msoTrue 1 -Option Constant -ErrorAction SilentlyContinue
+                
+                # own Constants
+                # cell width and height in points
+                Set-Variable cellWidth 48 -Option Constant -ErrorAction SilentlyContinue
+                Set-Variable cellHeight 15 -Option Constant -ErrorAction SilentlyContinue
+                
+                # arguments to insert the image through the Shapes.AddPicture Method
+                
+                $imgPath = $barcodePath
+                $LinkToFile = $msoFalse
+                $SaveWithDocument = $msoTrue
+                $Left = $cellWidth * 0
+                $Top = $cellHeight * 6
+                $Width = $cellWidth * 2
+                $Height = $cellHeight * 7
+                
+                # add image to the Sheet
+                $img = $sh.Shapes.AddPicture($imgPath, $LinkToFile, $SaveWithDocument,
+                $Left, $Top, $Width, $Height)
+                $sh.Range("A1:B5").Font.Size = 18
+                $sh.Range("A5").ColumnWidth = 15
+                $sh.Cells.Item(2, 1)  = if ($subPOvalue -ne $null){$subPOvalue} else {[string]::Empty}
+                $sh.Cells.Item(3, 1)  = if ($ptCO.Jobs -ne $null){$ptCO.Jobs} else {[string]::Empty}
+                $sh.Cells.Item(4, 1)  = if ($ptCO.Assign -ne $null){$ptCO.Assign} else {[string]::Empty}
+                $sh.Cells.Item(5, 1)  = if ($($ptCO.Received) -ne $null){$($ptCO.Received)} else {[string]::Empty}
+                
+                (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘Zebra ZP 500 (ZPL) (Copy 1)’)
+                
+                $sh.PrintOut(1,1,1)
+                
+                $wb.Close($false)
+                $xl.Quit()
+
+                (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘HP LaserJet Pro M402-M403 PCL 6’)
+
+                $SkuCell = [Smartsheet.Api.Models.Cell]::new()
+                $SkuCell.ColumnId = $SkuNumCol.Id
+                $SkuCell.Value    = "BEGIN:VCARD`nVERSION:3.0`nKIND:individual`nN:$($ptCO.Desc);$($subPOvalue)`nFN:$($subPOvalue) $($ptCO.Desc)`nORG:All New Glass`nEMAIL;TYPE=INTERNET:$($ptCO.Assign)`nEND:VCARD"
+
+                $row = [Smartsheet.Api.Models.Row]::new()
+                $row.Id = $newRow.Id
+                $row.Cells = [Smartsheet.Api.Models.Cell[]]@($SkuCell)
+
+                $updateRow = $client.SheetResources.RowResources.UpdateRows($ptId, [Smartsheet.Api.Models.Row[]]@($row))
+
+                $count = $newCount
+            }
+        }
+
+        if ($($ptCO.Print) -eq 1)
+        {
+            $barcodePath = "P:\ANG_System_Files\commonFormsUsedInScripts\Todds Labels\$($ptCO.Po).png"
+
+            New-QRCodeVCard -FirstName $($ptCO.Po) -LastName $($ptCO.Desc) -Email $($ptCO.Assign) -OutPath $barcodePath -Company "All New Glass"
 
             $xl = New-Object -ComObject Excel.Application -Property @{
              Visible = $false
              DisplayAlerts = $false
             }
-            $xl.Visible = $false
-
+            
             $wb = $xl.WorkBooks.Add()
             
             $sh = $wb.Sheets.Item('Sheet1')
@@ -147,31 +216,29 @@ foreach ($ptCO in $ptCOs)
             $Left, $Top, $Width, $Height)
             $sh.Range("A1:B5").Font.Size = 18
             $sh.Range("A5").ColumnWidth = 15
-            $sh.Cells.Item(2, 1)  = if ($subPOvalue -ne $null){$subPOvalue} else {[string]::Empty}
+            $sh.Cells.Item(2, 1)  = if ($($ptCO.Po) -ne $null){$($ptCO.Po)} else {[string]::Empty}
             $sh.Cells.Item(3, 1)  = if ($ptCO.Jobs -ne $null){$ptCO.Jobs} else {[string]::Empty}
             $sh.Cells.Item(4, 1)  = if ($ptCO.Assign -ne $null){$ptCO.Assign} else {[string]::Empty}
             $sh.Cells.Item(5, 1)  = if ($($ptCO.Received) -ne $null){$($ptCO.Received)} else {[string]::Empty}
             
-            (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘Zebra ZP 500 (ZPL) (Copy 1)’) ###########THIS IS WHERE YOUR LABEL PRINTER NAME GOES
+            (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘Zebra ZP 500 (ZPL) (Copy 1)’)
             
             $sh.PrintOut(1,1,1)
             
             $wb.Close($false)
             $xl.Quit()
 
-            (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘HP LaserJet Pro M402-M403 PCL 6’) ##########THIS IS YOUR DEFAULT PRINTER NAME
+            (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘HP LaserJet Pro M402-M403 PCL 6’)
 
             $SkuCell = [Smartsheet.Api.Models.Cell]::new()
             $SkuCell.ColumnId = $SkuNumCol.Id
-            $SkuCell.Value    = "BEGIN:VCARD`nVERSION:3.0`nKIND:individual`nN:$($ptCO.Desc);$($subPOvalue)`nFN:$($subPOvalue) $($ptCO.Desc)`nORG:All New Glass`nEMAIL;TYPE=INTERNET:$($ptCO.Assign)`nEND:VCARD"
+            $SkuCell.Value    = "BEGIN:VCARD`nVERSION:3.0`nKIND:individual`nN:$($ptCO.Desc);$($ptCO.Po)`nFN:$($ptCO.Po) $($ptCO.Desc)`nORG:All New Glass`nEMAIL;TYPE=INTERNET:$($ptCO.Assign)`nEND:VCARD"
 
             $row = [Smartsheet.Api.Models.Row]::new()
-            $row.Id = $newRow.Id
+            $row.Id = $ptCO.RowId
             $row.Cells = [Smartsheet.Api.Models.Cell[]]@($SkuCell)
 
             $updateRow = $client.SheetResources.RowResources.UpdateRows($ptId, [Smartsheet.Api.Models.Row[]]@($row))
-
-            $count = $newCount
         }
 
     $PrintCell = [Smartsheet.Api.Models.Cell]::new()
