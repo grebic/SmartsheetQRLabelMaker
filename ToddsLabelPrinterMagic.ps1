@@ -55,7 +55,7 @@ Load-Dll ".\RestSharp.dll"
 Load-Dll ".\Newtonsoft.Json.dll"
 Load-Dll ".\NLog.dll"
 
-$token = "9xpfoqpyxblhui52jqga2o1mvd"
+$token = ""
 $smartsheet = [Smartsheet.Api.SmartSheetBuilder]::new()
 $builder = $smartsheet.SetAccessToken($token)
 $client = $builder.Build()
