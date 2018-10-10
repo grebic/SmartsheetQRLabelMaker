@@ -153,7 +153,7 @@ foreach ($ptCO in $ptCOs)
                 $sh.Cells.Item(4, 1)  = if ($ptCO.Assign -ne $null){$ptCO.Assign} else {[string]::Empty}
                 $sh.Cells.Item(5, 1)  = if ($($ptCO.Received) -ne $null){$($ptCO.Received)} else {[string]::Empty}
                 
-                (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘Zebra ZP 500 (ZPL) (Copy 1)’)
+                (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘Zebra ZP 500 (ZPL)’)
                 
                 $sh.PrintOut(1,1,1)
                 
@@ -164,7 +164,14 @@ foreach ($ptCO in $ptCOs)
 
                 $SkuCell = [Smartsheet.Api.Models.Cell]::new()
                 $SkuCell.ColumnId = $SkuNumCol.Id
-                $SkuCell.Value    = "BEGIN:VCARD`nVERSION:3.0`nKIND:individual`nN:$($ptCO.Desc);$($subPOvalue)`nFN:$($subPOvalue) $($ptCO.Desc)`nORG:All New Glass`nEMAIL;TYPE=INTERNET:$($ptCO.Assign)`nEND:VCARD"
+                $SkuCell.Value    = "BEGIN:VCARD
+VERSION:3.0
+KIND:individual
+N:$($ptCO.Desc);$($subPOvalue)
+FN:$($subPOvalue) $($ptCO.Desc)
+ORG:All New Glass
+EMAIL;TYPE=INTERNET:$($ptCO.Assign)
+END:VCARD"
 
                 $row = [Smartsheet.Api.Models.Row]::new()
                 $row.Id = $newRow.Id
@@ -221,7 +228,7 @@ foreach ($ptCO in $ptCOs)
             $sh.Cells.Item(4, 1)  = if ($ptCO.Assign -ne $null){$ptCO.Assign} else {[string]::Empty}
             $sh.Cells.Item(5, 1)  = if ($($ptCO.Received) -ne $null){$($ptCO.Received)} else {[string]::Empty}
             
-            (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘Zebra ZP 500 (ZPL) (Copy 1)’)
+            (New-Object -ComObject WScript.Network).SetDefaultPrinter(‘Zebra ZP 500 (ZPL)’)
             
             $sh.PrintOut(1,1,1)
             
@@ -232,7 +239,14 @@ foreach ($ptCO in $ptCOs)
 
             $SkuCell = [Smartsheet.Api.Models.Cell]::new()
             $SkuCell.ColumnId = $SkuNumCol.Id
-            $SkuCell.Value    = "BEGIN:VCARD`nVERSION:3.0`nKIND:individual`nN:$($ptCO.Desc);$($ptCO.Po)`nFN:$($ptCO.Po) $($ptCO.Desc)`nORG:All New Glass`nEMAIL;TYPE=INTERNET:$($ptCO.Assign)`nEND:VCARD"
+            $SkuCell.Value    = "BEGIN:VCARD
+VERSION:3.0
+KIND:individual
+N:$($ptCO.Desc);$($ptCO.Po)
+FN:$($ptCO.Po) $($ptCO.Desc)
+ORG:All New Glass
+EMAIL;TYPE=INTERNET:$($ptCO.Assign)
+END:VCARD"
 
             $row = [Smartsheet.Api.Models.Row]::new()
             $row.Id = $ptCO.RowId
@@ -253,3 +267,5 @@ foreach ($ptCO in $ptCOs)
 
     }
 }
+
+# (Copy 1)
