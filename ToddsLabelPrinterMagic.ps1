@@ -16,6 +16,28 @@ function Load-Dll
     $assemblyLoaded = [System.Reflection.Assembly]::Load($assemblyBytes);
 }
 
+function DuplicateChecker
+{
+    $outputFilePT = "Label_PT_DuplicateChecker.txt"
+
+    $pos = foreach ($row in $pt.Rows)
+    {
+        $row.Cells[0].Value
+    }
+
+    $pos = $pos | where {$_ -ne $null -and ([string]$_).Split("-", [StringSplitOptions]::RemoveEmptyEntries).Count -gt 1} | sort
+    $uniquePos = $pos | select –unique
+
+    Compare -ReferenceObject $uniquePos -DifferenceObject $pos | Out-File $outputFilePT
+
+    If ((Get-Content $outputFilePT) -ne $Null) 
+    {
+        Start $outputFilePT
+        Sleep -Seconds 2
+        Stop-Process -Id $pid
+    }
+}
+
 function Get-ComparisonObjects
 {
     param([Smartsheet.Api.Models.Sheet]$sheet)
@@ -73,8 +95,9 @@ $assignLabelCol = $pt.Columns | where {$_.Title -eq ("Assigned To")}
 $printLabelCol = $pt.Columns | where {$_.Title -eq ("Print Label")}
 $SkuNumCol     = $pt.Columns | where {$_.Title -eq ("SKU")}
 
-$ptCOs  = Get-ComparisonObjects $pt
+DuplicateChecker
 
+$ptCOs  = Get-ComparisonObjects $pt
 
 foreach ($ptCO in $ptCOs)
 {
