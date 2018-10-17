@@ -156,7 +156,7 @@ foreach ($ptCO in $ptCOs)
                 $img = $sh.Shapes.AddPicture($imgPath, $LinkToFile, $SaveWithDocument,
                 $Left, $Top, $Width, $Height)
                 $sh.Range("A1:B5").Font.Size = 18
-                $sh.Range("A5").ColumnWidth = 15
+                $sh.Range("A5").ColumnWidth = 19
                 $sh.Cells.Item(2, 1)  = if ($subPOvalue -ne $null){$subPOvalue} else {[string]::Empty}
                 $sh.Cells.Item(3, 1)  = if ($ptCO.Jobs -ne $null){$ptCO.Jobs} else {[string]::Empty}
                 $sh.Cells.Item(4, 1)  = if ($ptCO.Assign -ne $null){$ptCO.Assign} else {[string]::Empty}
@@ -230,7 +230,7 @@ foreach ($ptCO in $ptCOs)
             $img = $sh.Shapes.AddPicture($imgPath, $LinkToFile, $SaveWithDocument,
             $Left, $Top, $Width, $Height)
             $sh.Range("A1:B5").Font.Size = 18
-            $sh.Range("A5").ColumnWidth = 15
+            $sh.Range("A5").ColumnWidth = 19
             $sh.Cells.Item(2, 1)  = if ($($ptCO.Po) -ne $null){$($ptCO.Po)} else {[string]::Empty}
             $sh.Cells.Item(3, 1)  = if ($ptCO.Jobs -ne $null){$ptCO.Jobs} else {[string]::Empty}
             $sh.Cells.Item(4, 1)  = if ($ptCO.Assign -ne $null){$ptCO.Assign} else {[string]::Empty}
