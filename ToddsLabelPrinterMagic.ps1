@@ -1,4 +1,5 @@
 cd "P:\ANG_System_Files"
+#cd "D:\MyFirstProject\src\AngSystemFiles"
 
 function Load-Dll
 {
@@ -54,6 +55,8 @@ Load-Dll ".\smartsheet-csharp-sdk.dll"
 Load-Dll ".\RestSharp.dll"
 Load-Dll ".\Newtonsoft.Json.dll"
 Load-Dll ".\NLog.dll"
+Load-Dll ".\QRCoder.dll"
+Load-Dll ".\UnityEngine.dll"
 
 $token = ""
 $smartsheet = [Smartsheet.Api.SmartSheetBuilder]::new()
@@ -112,7 +115,13 @@ foreach ($ptCO in $ptCOs)
 
                 $barcodePath = "P:\ANG_System_Files\commonFormsUsedInScripts\Todds Labels\$subPOvalue.png"
 
-                New-QRCodeVCard -FirstName $subPOvalue -LastName $($ptCO.Desc) -Email $($ptCO.Assign) -OutPath $barcodePath -Company "All New Glass"
+                $qrinput = "$subPOvalue`n$($ptCO.Desc)`n$($ptCO.Assign)`nAll New Glass"
+                $ecclevel = [QRCoder.QRCodeGenerator+ECCLevel]::Q
+                $qrgenerator = [QRCoder.QRCodeGenerator]::new()
+                $qrcodedata = $qrgenerator.CreateQrCode($qrinput,$ecclevel) 
+                $qrcode = [QRCoder.QRCode]::new($qrcodedata)
+                $bitmap = $qrcode.GetGraphic(40)
+                $bitmap.Save($barcodePath) 
 
                 $xl = New-Object -ComObject Excel.Application -Property @{
                  Visible = $false
@@ -164,14 +173,7 @@ foreach ($ptCO in $ptCOs)
 
                 $SkuCell = [Smartsheet.Api.Models.Cell]::new()
                 $SkuCell.ColumnId = $SkuNumCol.Id
-                $SkuCell.Value    = "BEGIN:VCARD
-VERSION:3.0
-KIND:individual
-N:$($ptCO.Desc);$($subPOvalue)
-FN:$($subPOvalue) $($ptCO.Desc)
-ORG:All New Glass
-EMAIL;TYPE=INTERNET:$($ptCO.Assign)
-END:VCARD"
+                $SkuCell.Value    = $qrinput
 
                 $row = [Smartsheet.Api.Models.Row]::new()
                 $row.Id = $newRow.Id
@@ -187,7 +189,13 @@ END:VCARD"
         {
             $barcodePath = "P:\ANG_System_Files\commonFormsUsedInScripts\Todds Labels\$($ptCO.Po).png"
 
-            New-QRCodeVCard -FirstName $($ptCO.Po) -LastName $($ptCO.Desc) -Email $($ptCO.Assign) -OutPath $barcodePath -Company "All New Glass"
+            $qrinput = "$($ptCO.Po)`n$($ptCO.Desc)`n$($ptCO.Assign)`nAll New Glass"
+            $ecclevel = [QRCoder.QRCodeGenerator+ECCLevel]::Q
+            $qrgenerator = [QRCoder.QRCodeGenerator]::new()
+            $qrcodedata = $qrgenerator.CreateQrCode($qrinput,$ecclevel) 
+            $qrcode = [QRCoder.QRCode]::new($qrcodedata)
+            $bitmap = $qrcode.GetGraphic(40)
+            $bitmap.Save($barcodePath) 
 
             $xl = New-Object -ComObject Excel.Application -Property @{
              Visible = $false
@@ -239,14 +247,7 @@ END:VCARD"
 
             $SkuCell = [Smartsheet.Api.Models.Cell]::new()
             $SkuCell.ColumnId = $SkuNumCol.Id
-            $SkuCell.Value    = "BEGIN:VCARD
-VERSION:3.0
-KIND:individual
-N:$($ptCO.Desc);$($ptCO.Po)
-FN:$($ptCO.Po) $($ptCO.Desc)
-ORG:All New Glass
-EMAIL;TYPE=INTERNET:$($ptCO.Assign)
-END:VCARD"
+            $SkuCell.Value    = $qrinput
 
             $row = [Smartsheet.Api.Models.Row]::new()
             $row.Id = $ptCO.RowId
